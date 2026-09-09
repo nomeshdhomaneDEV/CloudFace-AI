@@ -1,216 +1,316 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getCurrentProfile } from "@/lib/auth";
-import { LogoutButton } from "@/components/dashboard/LogoutButton";
+import { getAuthenticatedStudent, getStudentAttendanceSummary } from "@/lib/student";
 import {
-  Cloud,
-  ScanFace,
   GraduationCap,
   Hash,
   BookOpen,
   Layers,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-  Camera,
-  Calendar,
+  CalendarCheck2,
   CheckCircle2,
+  XCircle,
   Clock,
+  ArrowRight,
+  UserCheck,
+  History,
+  Camera,
+  AlertCircle,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function StudentDashboardPage() {
-  const authData = await getCurrentProfile();
+  const authData = await getAuthenticatedStudent();
 
-  if (!authData || authData.profile.role !== "STUDENT") {
+  if (!authData) {
     redirect("/login?role=student");
   }
 
-  const { profile } = authData;
-  const student = profile.student;
+  const { profile, student } = authData;
+  const attendance = await getStudentAttendanceSummary(student.id);
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col">
-      {/* Student Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Brand */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 shadow-lg shadow-cyan-500/20">
-                <Cloud className="w-5 h-5 text-white absolute -top-1 -right-1 opacity-60" />
-                <ScanFace className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Personalized Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl glass-panel p-6 sm:p-8 border border-cyan-500/20 shadow-2xl shadow-cyan-950/40">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-mono uppercase tracking-wider">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Student Academic Portal</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+              Welcome back, <span className="text-gradient-cyan">{profile.fullName}</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              Academic ID: <strong className="text-white font-mono">{student.rollNumber}</strong> • Enrolled in{" "}
+              <strong className="text-white">{student.class}</strong> (Section {student.division})
+            </p>
+          </div>
+
+          {/* Current Face Enrollment Status */}
+          <div className="flex-shrink-0 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-white/10 flex flex-col items-start lg:items-end gap-2">
+            <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Biometric Status</span>
+            {student.faceEnrolled ? (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Face Enrollment: Enrolled</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                  CloudFace <span className="text-cyan-400">AI</span>
-                </span>
-                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium -mt-1">
-                  Student Portal
-                </span>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>Face Enrollment: Not Enrolled</span>
               </div>
+            )}
+            <span className="text-[11px] text-slate-500">Configured in Phase 6</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Attendance Summary Grid */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
+            <CalendarCheck2 className="w-4 h-4 text-cyan-400" />
+            <span>Attendance Summary</span>
+          </h2>
+          <Link
+            href="/student/attendance"
+            className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium"
+          >
+            <span>Full Overview</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Overall Attendance Rate */}
+          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span>Attendance Rate</span>
+              <CalendarCheck2 className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-bold text-white font-mono">
+                {attendance.totalSessions > 0 ? `${attendance.attendancePercentage}%` : "—"}
+              </span>
+              <span className="text-xs text-slate-500">
+                ({attendance.presentCount}/{attendance.totalSessions} sessions)
+              </span>
+            </div>
+            <div className="pt-1 text-[11px]">
+              {attendance.totalSessions === 0 ? (
+                <span className="text-slate-500">No sessions recorded yet</span>
+              ) : attendance.meetsTarget ? (
+                <span className="text-emerald-400 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Attendance meets the 75% target
+                </span>
+              ) : (
+                <span className="text-amber-400 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  Below the recommended 75% target
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Present Sessions */}
+          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span>Present Sessions</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <span className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono">
+              {attendance.presentCount}
+            </span>
+            <p className="text-[11px] text-slate-500">Verified on-time attendance</p>
+          </div>
+
+          {/* Late Sessions (Separated) */}
+          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span>Late Sessions</span>
+              <Clock className="w-4 h-4 text-amber-400" />
+            </div>
+            <span className="text-2xl sm:text-3xl font-bold text-amber-400 font-mono">
+              {attendance.lateCount}
+            </span>
+            <p className="text-[11px] text-slate-500">Kept separate from present status</p>
+          </div>
+
+          {/* Absent Sessions */}
+          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-2">
+            <div className="flex items-center justify-between text-slate-400 text-xs">
+              <span>Absent Sessions</span>
+              <XCircle className="w-4 h-4 text-rose-400" />
+            </div>
+            <span className="text-2xl sm:text-3xl font-bold text-rose-400 font-mono">
+              {attendance.absentCount}
+            </span>
+            <p className="text-[11px] text-slate-500">Missed classroom check-ins</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Academic Credentials Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-2xl glass-panel border border-white/5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-cyan-950/60 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <Hash className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[11px] text-slate-400 block">Roll Number</span>
+            <span className="text-sm font-bold text-white font-mono">{student.rollNumber}</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl glass-panel border border-white/5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-950/60 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[11px] text-slate-400 block">Class / Degree</span>
+            <span className="text-sm font-semibold text-white">{student.class}</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl glass-panel border border-white/5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-950/60 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[11px] text-slate-400 block">Division</span>
+            <span className="text-sm font-semibold text-white">Section {student.division}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions & Recent Check-ins */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions Card */}
+        <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <span>Quick Actions</span>
+          </h3>
+
+          <div className="space-y-2.5">
+            <Link
+              href="/student/attendance"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-cyan-500/30 text-xs sm:text-sm text-slate-200 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <CalendarCheck2 className="w-4 h-4 text-cyan-400" />
+                <span>View Attendance Analytics</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
             </Link>
 
-            {/* Top Right User & Logout */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/50 border border-cyan-500/30 text-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-slate-300 font-medium">{profile.fullName}</span>
-                <span className="text-cyan-400 font-mono font-semibold">({student?.rollNumber || "STUDENT"})</span>
+            <Link
+              href="/student/history"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-cyan-500/30 text-xs sm:text-sm text-slate-200 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <History className="w-4 h-4 text-indigo-400" />
+                <span>Attendance History Ledger</span>
               </div>
-              <LogoutButton variant="student" />
-            </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+
+            <Link
+              href="/student/profile"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-cyan-500/30 text-xs sm:text-sm text-slate-200 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>View Academic Profile</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
           </div>
         </div>
-      </header>
 
-      {/* Main Student Dashboard Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-        {/* Welcome Banner Card */}
-        <div className="relative overflow-hidden rounded-3xl glass-panel p-6 sm:p-10 border border-cyan-500/20 shadow-2xl shadow-cyan-950/40">
-          {/* Background ambient glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        {/* Recent Attendance Activity */}
+        <div className="lg:col-span-2 p-6 rounded-2xl glass-panel border border-white/5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-indigo-400" />
+              <span>Recent Check-In Activity</span>
+            </h3>
+            <Link
+              href="/student/history"
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+            >
+              View All
+            </Link>
+          </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-mono uppercase tracking-wider">
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Student Academic Portal • Verified</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Welcome back, <span className="text-gradient-cyan">{profile.fullName}</span>
-              </h1>
-              <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
-                Your CloudFace AI academic profile is connected. Daily attendance and verification records are synced securely with college databases.
+          {attendance.records.length === 0 ? (
+            <div className="py-8 px-4 text-center rounded-xl bg-white/[0.02] border border-dashed border-white/10 space-y-2">
+              <Clock className="w-8 h-8 text-slate-500 mx-auto" />
+              <p className="text-xs sm:text-sm font-medium text-slate-300">
+                No attendance records found
+              </p>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                Classroom check-ins will automatically log attendance dates, verification status, and timestamps here.
               </p>
             </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {attendance.records.slice(0, 3).map((record) => {
+                const dateStr = new Date(record.attendanceDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                });
+                const timeStr = new Date(record.checkInTime).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
 
-            {/* Biometric Status Indicator Badge */}
-            <div className="flex-shrink-0 p-5 rounded-2xl bg-slate-900/80 border border-white/10 flex flex-col items-center md:items-end gap-2 text-center md:text-right">
-              <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Face Enrollment Status</span>
-              {student?.faceEnrolled ? (
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Biometrics Enrolled</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-                  <Clock className="w-4 h-4 text-amber-400" />
-                  <span>Face Setup Pending (Phase 6)</span>
-                </div>
-              )}
-              <span className="text-[11px] text-slate-500">Encrypted Facial Vector Format</span>
+                return (
+                  <div key={record.id} className="py-3 flex items-center justify-between text-xs">
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-white block">{dateStr}</span>
+                      <span className="text-slate-400 text-[11px]">{timeStr}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">
+                        {record.verificationMethod}
+                      </span>
+                      {record.status === "PRESENT" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">
+                          <CheckCircle2 className="w-3 h-3" /> Present
+                        </span>
+                      ) : record.status === "LATE" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-950/70 text-amber-300 border border-amber-500/30">
+                          <Clock className="w-3 h-3" /> Late
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-950/70 text-rose-300 border border-rose-500/30">
+                          <XCircle className="w-3 h-3" /> Absent
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          )}
+
+          {/* Phase 6 Notice */}
+          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Automated Face Recognition</span>
+            </span>
+            <span className="font-mono text-cyan-400/80">Scheduled for Phase 6</span>
           </div>
         </div>
-
-        {/* Academic Profile Details Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span>Roll Number</span>
-              <Hash className="w-4 h-4 text-cyan-400" />
-            </div>
-            <p className="text-lg font-bold text-white font-mono">{student?.rollNumber || "N/A"}</p>
-            <p className="text-[11px] text-slate-500">Unique Academic ID</p>
-          </div>
-
-          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span>Class / Program</span>
-              <BookOpen className="w-4 h-4 text-cyan-400" />
-            </div>
-            <p className="text-lg font-bold text-white">{student?.class || "N/A"}</p>
-            <p className="text-[11px] text-slate-500">Enrolled Degree</p>
-          </div>
-
-          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span>Division</span>
-              <Layers className="w-4 h-4 text-cyan-400" />
-            </div>
-            <p className="text-lg font-bold text-white font-mono">{student?.division || "N/A"}</p>
-            <p className="text-[11px] text-slate-500">Section Group</p>
-          </div>
-
-          <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span>Registered Email</span>
-              <Mail className="w-4 h-4 text-cyan-400" />
-            </div>
-            <p className="text-sm font-semibold text-white truncate">{profile.email}</p>
-            <p className="text-[11px] text-slate-500">Supabase Auth Verified</p>
-          </div>
-        </div>
-
-        {/* Action / Roadmap Phase Cards */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Attendance Modules</span>
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Phase 6 Feature Card */}
-            <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4 hover:border-cyan-500/30 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                <Camera className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">Face Enrollment</h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/20">Phase 6</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Capture reference face landmarks to generate numerical vector embeddings for automated attendance.
-                </p>
-              </div>
-              <div className="pt-2 text-xs text-slate-500 flex items-center gap-1.5">
-                <span>Integrated via client-side face-api.js</span>
-              </div>
-            </div>
-
-            {/* Phase 7 Feature Card */}
-            <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4 hover:border-indigo-500/30 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">Attendance Log</h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-500/20">Phase 7</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  View your complete attendance ledger, check-in timestamps, verification methods, and overall percentage.
-                </p>
-              </div>
-              <div className="pt-2 text-xs text-slate-500 flex items-center gap-1.5">
-                <span>Enforces one check-in per calendar day</span>
-              </div>
-            </div>
-
-            {/* Privacy & Security Card */}
-            <div className="p-6 rounded-2xl glass-panel border border-white/5 space-y-4 hover:border-cyan-500/30 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-emerald-400">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">Security & Privacy</h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/20">Encrypted</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Your identity is protected with zero raw photo retention. Only one-way biometric vectors are verified.
-                </p>
-              </div>
-              <div className="pt-2 text-xs text-slate-500 flex items-center gap-1.5">
-                <span>College Academic Compliance</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
