@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { Scan, ShieldCheck, ArrowRight, Layers, CheckCircle2 } from "lucide-react";
 
 interface HeroSectionProps {
-  onOpenAuth: (role: "student" | "admin" | "register") => void;
+  onOpenAuth?: (role: "student" | "admin" | "register") => void;
 }
 
 export function HeroSection({ onOpenAuth }: HeroSectionProps) {
+  void onOpenAuth;
   return (
     <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28">
       {/* Background ambient lighting gradients */}
@@ -22,7 +24,7 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
               <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
               <span>College Cloud Computing Project</span>
               <span className="text-white/30">•</span>
-              <span className="text-cyan-200">Phase 2 Foundation Ready</span>
+              <span className="text-cyan-200">Phase 4 Auth & RBAC Active</span>
             </div>
 
             {/* Tagline & Main Headline */}
@@ -59,31 +61,31 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
 
             {/* Action CTA Buttons */}
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
-              <button
+              <Link
+                href="/login?role=student"
                 id="hero-btn-student"
-                onClick={() => onOpenAuth("student")}
                 className="w-full sm:w-auto px-7 py-3.5 text-sm sm:text-base font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 hover:from-cyan-300 hover:to-indigo-200 rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group"
               >
                 <span>Launch Student Portal</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
 
-              <button
+              <Link
+                href="/login?role=admin"
                 id="hero-btn-admin"
-                onClick={() => onOpenAuth("admin")}
                 className="w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base font-medium text-slate-200 hover:text-white bg-slate-900/80 hover:bg-slate-800/90 rounded-xl border border-white/10 hover:border-cyan-500/40 shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <ShieldCheck className="w-4 h-4 text-cyan-400" />
                 <span>Admin Console</span>
-              </button>
+              </Link>
 
-              <button
+              <Link
+                href="/register"
                 id="hero-btn-register"
-                onClick={() => onOpenAuth("register")}
-                className="w-full sm:w-auto px-5 py-3.5 text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:bg-cyan-950/40 rounded-xl transition-all duration-200"
+                className="w-full sm:w-auto px-5 py-3.5 text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:bg-cyan-950/40 rounded-xl transition-all duration-200 flex items-center justify-center"
               >
                 Register Student
-              </button>
+              </Link>
             </div>
           </div>
 

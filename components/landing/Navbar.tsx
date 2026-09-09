@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Cloud, ScanFace, ShieldCheck, Menu, X, ArrowRight } from "lucide-react";
 
 interface NavbarProps {
-  onOpenAuth: (role: "student" | "admin" | "register") => void;
+  onOpenAuth?: (role: "student" | "admin" | "register") => void;
 }
 
 export function Navbar({ onOpenAuth }: NavbarProps) {
+  void onOpenAuth;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -68,29 +70,29 @@ export function Navbar({ onOpenAuth }: NavbarProps) {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <button
+            <Link
+              href="/login?role=student"
               id="nav-btn-student-login"
-              onClick={() => onOpenAuth("student")}
               className="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white hover:bg-white/5 rounded-lg border border-white/10 transition-all duration-200"
             >
               Student Portal
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/login?role=admin"
               id="nav-btn-admin-login"
-              onClick={() => onOpenAuth("admin")}
               className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all duration-200 flex items-center gap-1.5"
             >
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
               Admin
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/register"
               id="nav-btn-register"
-              onClick={() => onOpenAuth("register")}
               className="px-4 py-2 text-sm font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-indigo-400 hover:from-cyan-300 hover:to-indigo-300 rounded-lg shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all duration-200 flex items-center gap-1.5"
             >
               Register
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
 
           {/* Mobile menu toggle */}
@@ -140,36 +142,30 @@ export function Navbar({ onOpenAuth }: NavbarProps) {
             Roadmap
           </a>
           <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
-            <button
+            <Link
+              href="/login?role=student"
               id="mobile-btn-student-login"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAuth("student");
-              }}
+              onClick={() => setMobileMenuOpen(false)}
               className="w-full py-2.5 px-4 text-center font-medium text-sm text-slate-200 bg-white/5 rounded-lg border border-white/10"
             >
               Student Portal
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/login?role=admin"
               id="mobile-btn-admin-login"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAuth("admin");
-              }}
+              onClick={() => setMobileMenuOpen(false)}
               className="w-full py-2.5 px-4 text-center font-medium text-sm text-cyan-300 bg-cyan-950/40 rounded-lg border border-cyan-500/20"
             >
               Admin Console
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/register"
               id="mobile-btn-register"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAuth("register");
-              }}
+              onClick={() => setMobileMenuOpen(false)}
               className="w-full py-2.5 px-4 text-center font-semibold text-sm text-slate-950 bg-gradient-to-r from-cyan-400 to-indigo-400 rounded-lg shadow-md"
             >
               Register Student
-            </button>
+            </Link>
           </div>
         </div>
       )}
