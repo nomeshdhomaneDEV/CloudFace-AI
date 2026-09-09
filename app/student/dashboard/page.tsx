@@ -13,8 +13,8 @@ import {
   ArrowRight,
   UserCheck,
   History,
-  Camera,
   AlertCircle,
+  ScanFace,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -53,18 +53,23 @@ export default async function StudentDashboardPage() {
           {/* Current Face Enrollment Status */}
           <div className="flex-shrink-0 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-white/10 flex flex-col items-start lg:items-end gap-2">
             <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Biometric Status</span>
-            {student.faceEnrolled ? (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Face Enrollment: Enrolled</span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <span>Face Enrollment: Not Enrolled</span>
-              </div>
-            )}
-            <span className="text-[11px] text-slate-500">Configured in Phase 6</span>
+            <Link
+              href="/student/enroll"
+              className="group focus:outline-none"
+            >
+              {student.faceEnrolled ? (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/70 hover:bg-emerald-900/70 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Face Enrollment: Enrolled</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/60 hover:bg-amber-900/60 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-colors">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>Face Enrollment: Not Enrolled</span>
+                </div>
+              )}
+            </Link>
+            <span className="text-[11px] text-slate-500">Manage in Face Enrollment</span>
           </div>
         </div>
       </div>
@@ -220,6 +225,17 @@ export default async function StudentDashboardPage() {
             </Link>
 
             <Link
+              href="/student/enroll"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-cyan-500/30 text-xs sm:text-sm text-slate-200 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <ScanFace className="w-4 h-4 text-cyan-400" />
+                <span>Face Biometric Enrollment</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+
+            <Link
               href="/student/profile"
               className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-cyan-500/30 text-xs sm:text-sm text-slate-200 transition-colors"
             >
@@ -301,13 +317,16 @@ export default async function StudentDashboardPage() {
             </div>
           )}
 
-          {/* Phase 6 Notice */}
+          {/* Phase 6 Active */}
           <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500">
             <span className="flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Automated Face Recognition</span>
+              <ScanFace className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Face Biometric Enrollment</span>
             </span>
-            <span className="font-mono text-cyan-400/80">Scheduled for Phase 6</span>
+            <Link href="/student/enroll" className="font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+              <span>Phase 6 Active</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
         </div>
       </div>

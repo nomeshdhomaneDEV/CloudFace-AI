@@ -8,6 +8,7 @@ import {
   CalendarCheck2,
   History,
   User,
+  ScanFace,
   Menu,
   X,
 } from "lucide-react";
@@ -31,6 +32,11 @@ const navItems = [
     name: "History",
     href: "/student/history",
     icon: History,
+  },
+  {
+    name: "Face Enrollment",
+    href: "/student/enroll",
+    icon: ScanFace,
   },
   {
     name: "Profile",
