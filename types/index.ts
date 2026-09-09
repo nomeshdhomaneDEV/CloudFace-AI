@@ -1,11 +1,8 @@
-/**
- * Core type definitions for CloudFace AI
- * Cloud-Based Smart Face Recognition Attendance Management System
- */
-
 export type UserRole = "STUDENT" | "ADMIN";
 
 export type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE";
+
+export type VerificationMethod = "FACE";
 
 export interface UserProfile {
   id: string;
@@ -27,12 +24,29 @@ export interface StudentRecord {
   updatedAt: Date;
 }
 
+export interface FaceEmbeddingRecord {
+  id: string;
+  studentId: string;
+  embedding: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface AttendanceRecord {
   id: string;
   studentId: string;
   attendanceDate: Date;
   checkInTime: Date;
   status: AttendanceStatus;
+  verificationMethod: VerificationMethod;
+  createdAt: Date;
+}
+
+export interface AdminActivityLogRecord {
+  id: string;
+  adminId: string;
+  action: string;
+  description: string;
   createdAt: Date;
 }
 

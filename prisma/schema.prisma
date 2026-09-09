@@ -1,15 +1,11 @@
-// Prisma Schema for CloudFace AI
-// Cloud-Based Smart Face Recognition Attendance Management System
-// Aligned with SRS specifications for PostgreSQL (Supabase / Neon / Vercel Postgres)
-
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 enum Role {
@@ -23,7 +19,10 @@ enum AttendanceStatus {
   LATE
 }
 
-// Stores core user profile information
+enum VerificationMethod {
+  FACE
+}
+
 model Profile {
   id           String             @id @default(uuid())
   email        String             @unique
@@ -37,38 +36,55 @@ model Profile {
   @@map("profiles")
 }
 
-// Stores student-specific academic information and face enrollment flag
 model Student {
-  id           String       @id @default(uuid())
-  profileId    String       @unique @map("profile_id")
-  rollNumber   String       @unique @map("roll_number")
-  class        String       @map("class")
-  division     String       @map("division")
-  faceEnrolled Boolean      @default(false) @map("face_enrolled")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  profile      Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  attendances  Attendance[]
+  id            String          @id @default(uuid())
+  profileId     String          @unique @map("profile_id")
+  rollNumber    String          @unique @map("roll_number")
+  class         String          @map("class")
+  division      String          @map("division")
+  faceEnrolled  Boolean         @default(false) @map("face_enrolled")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  profile       Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  faceEmbedding FaceEmbedding?
+  attendances   Attendance[]
 
   @@map("students")
 }
 
-// Stores daily attendance check-ins with duplicate prevention
-model Attendance {
-  id             String           @id @default(uuid())
-  studentId      String           @map("student_id")
-  attendanceDate DateTime         @map("attendance_date") @db.Date
-  checkInTime    DateTime         @default(now()) @map("check_in_time")
-  status         AttendanceStatus @default(PRESENT)
-  createdAt      DateTime         @default(now()) @map("created_at")
-  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+// Sensitive biometric data.
+// Stores serialized numerical facial vector representations rather than raw photographs
+// to maintain student privacy.
+model FaceEmbedding {
+  id        String   @id @default(uuid())
+  studentId String   @unique @map("student_id")
+  embedding String   @map("embedding") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  // Composite unique index to ensure a student cannot check in more than once per calendar date
+  @@index([studentId])
+  @@map("face_embeddings")
+}
+
+model Attendance {
+  id                 String             @id @default(uuid())
+  studentId          String             @map("student_id")
+  attendanceDate     DateTime           @map("attendance_date") @db.Date
+  checkInTime        DateTime           @default(now()) @map("check_in_time")
+  status             AttendanceStatus   @default(PRESENT)
+  verificationMethod VerificationMethod @default(FACE) @map("verification_method")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  student            Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Enforce one check-in per student per calendar date
   @@unique([studentId, attendanceDate], name: "unique_student_date_attendance")
+  @@index([studentId])
+  @@index([attendanceDate])
+  @@index([status])
   @@map("attendances")
 }
 
-// Stores administrator audit and action logs
 model AdminActivityLog {
   id          String   @id @default(uuid())
   adminId     String   @map("admin_id")
@@ -77,5 +93,7 @@ model AdminActivityLog {
   createdAt   DateTime @default(now()) @map("created_at")
   admin       Profile  @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
+  @@index([adminId])
+  @@index([createdAt])
   @@map("admin_activity_logs")
 }
